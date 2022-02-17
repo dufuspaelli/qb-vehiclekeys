@@ -204,7 +204,7 @@ local function Hotwire()
         local vehicle = GetVehiclePedIsIn(ped, true)
         IsHotwiring = true
         lockpickedPlate = nil
-        local hotwireTime = math.random(20000, 40000)
+        local hotwireTime = math.random(2000, 4000)
         SetVehicleAlarm(vehicle, true)
         SetVehicleAlarmTimeLeft(vehicle, hotwireTime)
         PoliceCall()
