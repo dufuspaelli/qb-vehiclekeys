@@ -243,14 +243,23 @@ local function RobVehicle(target)
     IsRobbing = true
     loadAnimDict('mp_am_hold_up')
     TaskPlayAnim(target, "mp_am_hold_up", "holdup_victim_20s", 8.0, -8.0, -1, 2, 0, false, false, false)
-    QBCore.Functions.Progressbar("rob_keys", "Attempting Robbery..", 6000, false, true, {}, {}, {}, {}, function()
+    local veh = GetVehiclePedIsUsing(target)
+    FreezeEntityPosition(veh, true)
+    FreezeEntityPosition(target, true)
+    QBCore.Functions.Progressbar("rob_keys", "Attempting Robbery..", 2000, false, true, {}, {}, {}, {}, function()
         local chance = math.random()
         if chance <= Config.RobberyChance then
-            veh = GetVehiclePedIsUsing(target)
+            FreezeEntityPosition(target, false)
+            Wait(1000)
+           
+          
+          
             TaskEveryoneLeaveVehicle(veh)
+
             Wait(500)
             ClearPedTasksImmediately(target)
             TaskReactAndFleePed(target, PlayerPedId())
+            FreezeEntityPosition(veh, false)
             local plate = QBCore.Functions.GetPlate(GetVehiclePedIsIn(target, true))
             TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
             TriggerEvent('vehiclekeys:client:SetOwner', plate)
@@ -258,6 +267,9 @@ local function RobVehicle(target)
             Wait(10000)
             IsRobbing = false
         else
+            FreezeEntityPosition(veh, false)
+            Wait(1000)
+            FreezeEntityPosition(target, false)
             PoliceCall()
             ClearPedTasks(target)
             TaskReactAndFleePed(target, PlayerPedId())
@@ -412,10 +424,10 @@ CreateThread(function()
                     local playerid = PlayerId()
                     local aiming, target = GetEntityPlayerIsFreeAimingAt(playerid)
                     if aiming and (target ~= nil and target ~= 0) then
-                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) then
+                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not IsACop(target) then
                             if IsPedInAnyVehicle(target, false) then
                                 local targetveh = GetVehiclePedIsIn(target)
-                                if GetPedInVehicleSeat(targetveh, -1) == target then
+                                if GetPedInVehicleSeat(targetveh, -1) == target and GetEntitySpeed(targetveh) * 3.6 < 30 then
                                     if not IsBlacklistedWeapon() then
                                         local pos = GetEntityCoords(ped, true)
                                         local targetpos = GetEntityCoords(target, true)
@@ -433,3 +445,13 @@ CreateThread(function()
         Wait(sleep)
     end
 end)
+
+function IsACop(ped)
+
+if (GetEntityModel(ped) == 's_m_y_cop_01') then
+    return true
+else 
+    return false 
+end
+    
+end
