@@ -121,6 +121,7 @@ local function PoliceCall()
                 local alertTitle = ""
                 if IsPedInAnyVehicle(ped) then
                     local vehicle = GetVehiclePedIsIn(ped, false)
+                    local netId = VehToNet(vehicle)
                     local modelName = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
                     if QBCore.Shared.Vehicles[modelName] ~= nil then
                         Name = QBCore.Shared.Vehicles[modelName]["brand"] .. ' ' .. QBCore.Shared.Vehicles[modelName]["name"]
@@ -130,7 +131,13 @@ local function PoliceCall()
                     local modelPlate = QBCore.Functions.GetPlate(vehicle)
                     local msg = "Vehicle theft attempt at " .. streetLabel .. ". Vehicle: " .. Name .. ", Licenseplate: " .. modelPlate
                     local alertTitle = "Vehicle theft attempt at"
-                    TriggerServerEvent("police:server:VehicleCall", pos, msg, alertTitle, streetLabel, modelPlate, Name)
+                    local doors = GetVehicleModelNumberOfSeats(vehicle)
+                    local class = GetVehicleClass(vehicle)
+                    local vehicleColour1, vehicleColour2 = GetVehicleColours(vehicle)
+                    data = {dispatchCode = 'autotheft', caller = 'en', coords = pos, netId = netId,
+                	info = ('[%s] %s%s'):format(modelPlate, doors, class)}
+                    TriggerServerEvent('wf-alerts:svNotify', data)
+                    TriggerServerEvent("setWantedLevel", 1)
                 else
                     local vehicle = QBCore.Functions.GetClosestVehicle()
                     local modelName = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
@@ -142,7 +149,14 @@ local function PoliceCall()
                     end
                     local msg = "Vehicle theft attempt at " .. streetLabel .. ". Vehicle: " .. Name .. ", Licenseplate: " .. modelPlate
                     local alertTitle = "Vehicle theft attempt at"
-                    TriggerServerEvent("police:server:VehicleCall", pos, msg, alertTitle, streetLabel, modelPlate, Name)
+                    local netId = PedToNet(ped)
+                    local doors = GetVehicleModelNumberOfSeats(vehicle)
+                    local class = GetVehicleClass(vehicle)
+                    local vehicleColour1, vehicleColour2 = GetVehicleColours(vehicle)
+                    data = {dispatchCode = 'autotheft', caller = 'en', coords = pos, netId = netId,
+                	info = ('[%s] %s%s'):format(modelPlate, doors, class)}
+                    TriggerServerEvent('wf-alerts:svNotify', data)
+                    TriggerServerEvent("setWantedLevel", 1)
                 end
             end
         end
@@ -158,6 +172,7 @@ local function lockpickFinish(success)
     local pos = GetEntityCoords(ped)
     local vehicle = QBCore.Functions.GetClosestVehicle(pos)
     local chance = math.random()
+    StopAnimTask(PlayerPedId(), "missheistfbisetup1", "unlock_loop_janitor", 1.0)
     if success then
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
         QBCore.Functions.Notify('Opened Door!', 'success')
@@ -192,6 +207,12 @@ local function LockpickDoor(isAdvanced)
             local vehLockStatus = GetVehicleDoorLockStatus(vehicle)
             if (vehLockStatus > 0) then
                 usingAdvanced = isAdvanced
+                loadAnimDict('missheistfbisetup1')
+                while not HasAnimDictLoaded('missheistfbisetup1') do
+                    Wait(100)
+                end
+                TaskPlayAnim(PlayerPedId(), "missheistfbisetup1", "unlock_loop_janitor", 8.0, 1.0, -1, 1)
+                
                 TriggerEvent('qb-lockpick:client:openLockpick', lockpickFinish)
             end
         end
@@ -206,9 +227,33 @@ local function Hotwire()
         lockpickedPlate = nil
         local hotwireTime = math.random(2000, 4000)
         SetVehicleAlarm(vehicle, true)
-        SetVehicleAlarmTimeLeft(vehicle, hotwireTime)
+        SetVehicleAlarmTimeLeft(vehicle, 100000)
         PoliceCall()
-        QBCore.Functions.Progressbar("hotwire_vehicle", "Engaging the ignition switch", hotwireTime, false, true, {
+        RequestAnimDict("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
+
+        while not HasAnimDictLoaded("anim@amb@clubhouse@tutorial@bkr_tut_ig3@") do 
+            Wait(10)
+            RequestAnimDict("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
+        end
+        TaskPlayAnim(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0, 8.0, 100000, 16, -1, false, false, false)
+        TriggerEvent("qb-carhack:starthack", function(result)
+            print("result: " .. tostring(result))
+                if result == 1 then 
+                    SetVehicleEngineOn(veh, true, false, true)
+                    TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(vehicle))
+                    QBCore.Functions.Notify("Hotwire succeeded!")
+                    lockpicked = false
+                else
+                    SetVehicleEngineOn(veh, false, false, true)
+                    QBCore.Functions.Notify("Hotwire failed!", "error")
+                end
+                StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
+              
+                IsHotwiring = false
+                SetVehicleAlarm(vehicle, false)
+        end)
+      
+--[[         QBCore.Functions.Progressbar("hotwire_vehicle", "Engaging the ignition switch", hotwireTime, false, true, {
             disableMovement = true,
             disableCarMovement = true,
             disableMouse = false,
@@ -235,14 +280,18 @@ local function Hotwire()
             SetVehicleEngineOn(veh, false, false, true)
             QBCore.Functions.Notify("Hotwire failed!", "error")
             IsHotwiring = false
-        end)
+        end) ]]
     end
 end
 
 local function RobVehicle(target)
     IsRobbing = true
     loadAnimDict('mp_am_hold_up')
+    while not HasAnimDictLoaded('mp_am_hold_up') do
+        Wait(100)
+    end 
     TaskPlayAnim(target, "mp_am_hold_up", "holdup_victim_20s", 8.0, -8.0, -1, 2, 0, false, false, false)
+    Wait(100)
     local veh = GetVehiclePedIsUsing(target)
     FreezeEntityPosition(veh, true)
     FreezeEntityPosition(target, true)
@@ -388,8 +437,10 @@ CreateThread(function()
                             QBCore.Functions.TriggerCallback('vehiclekeys:server:CheckHasKey', function(result)
                                 if not lockpicked and lockpickedPlate ~= plate then
                                     if result == false then
-                                        SetVehicleDoorsLocked(entering, 2)
+                                        print("triggered carlockshit")
+                                        SetVehicleDoorsLocked(entering, 7)
                                         HasVehicleKey = false
+                                        lockpicked = true -- this is a dirty hack. you probably dont want to replicate this.
                                     else 
                                         HasVehicleKey = true
                                     end
@@ -423,8 +474,9 @@ CreateThread(function()
                 if not IsRobbing then
                     local playerid = PlayerId()
                     local aiming, target = GetEntityPlayerIsFreeAimingAt(playerid)
-                    if aiming and (target ~= nil and target ~= 0) then
-                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not IsACop(target) then
+                    local isCop = isACop(target)
+                    if aiming and not isCop and (target ~= nil and target ~= 0) then
+                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not isACop(target) then
                             if IsPedInAnyVehicle(target, false) then
                                 local targetveh = GetVehiclePedIsIn(target)
                                 if GetPedInVehicleSeat(targetveh, -1) == target and GetEntitySpeed(targetveh) * 3.6 < 30 then
@@ -446,12 +498,12 @@ CreateThread(function()
     end
 end)
 
-function IsACop(ped)
+function isACop(ped)
 
-if (GetEntityModel(ped) == 's_m_y_cop_01') then
-    return true
-else 
-    return false 
-end
+    if (GetEntityModel(ped) == 's_m_y_cop_01') then
+        return true
+    else 
+        return false 
+    end
     
 end
