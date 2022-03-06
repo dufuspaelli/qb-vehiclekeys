@@ -473,10 +473,13 @@ CreateThread(function()
             if Config.Rob then
                 if not IsRobbing then
                     local playerid = PlayerId()
-                    local aiming, target = GetEntityPlayerIsFreeAimingAt(playerid)
-                    local isCop = isACop(target)
+                    local aiming, target = GetEntityPlayerIsFreeAimingAt(playerid, target)
+                    local isCop = exports["qb-cnr"]:isACop()
+                    print("iscop:"..tostring(isCop))
+                    print(target)
                     if aiming and not isCop and (target ~= nil and target ~= 0) then
-                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not isACop(target) then
+                        print("haloo")
+                        if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not isTargetACop(target) then
                             if IsPedInAnyVehicle(target, false) then
                                 local targetveh = GetVehiclePedIsIn(target)
                                 if GetPedInVehicleSeat(targetveh, -1) == target and GetEntitySpeed(targetveh) * 3.6 < 30 then
@@ -498,12 +501,6 @@ CreateThread(function()
     end
 end)
 
-function isACop(ped)
-
-    if (GetEntityModel(ped) == 's_m_y_cop_01') then
-        return true
-    else 
-        return false 
-    end
-    
+function isTargetACop(ped)
+    if (GetEntityArchetypeName(ped) == 's_m_y_cop_01') then return true else return false end
 end
