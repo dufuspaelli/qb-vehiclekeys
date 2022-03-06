@@ -475,10 +475,7 @@ CreateThread(function()
                     local playerid = PlayerId()
                     local aiming, target = GetEntityPlayerIsFreeAimingAt(playerid, target)
                     local isCop = exports["qb-cnr"]:isACop()
-                    print("iscop:"..tostring(isCop))
-                    print(target)
                     if aiming and not isCop and (target ~= nil and target ~= 0) then
-                        print("haloo")
                         if DoesEntityExist(target) and not IsEntityDead(target) and not IsPedAPlayer(target) and not isTargetACop(target) then
                             if IsPedInAnyVehicle(target, false) then
                                 local targetveh = GetVehiclePedIsIn(target)
