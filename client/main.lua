@@ -420,8 +420,14 @@ CreateThread(function()
                     if not result then -- if not player owned
                         local driver = GetPedInVehicleSeat(entering, -1)
                         if driver ~= 0 and not IsPedAPlayer(driver) then
+                            print(GetVehicleClass(entering))
+               
                             if Config.Rob then
                                 if IsEntityDead(driver) then
+                                    TriggerEvent("vehiclekeys:client:SetOwner", plate)
+                                    SetVehicleDoorsLocked(entering, 1)
+                                    HasVehicleKey = true
+                                elseif GetVehicleClass(entering) == 8 and driver then 
                                     TriggerEvent("vehiclekeys:client:SetOwner", plate)
                                     SetVehicleDoorsLocked(entering, 1)
                                     HasVehicleKey = true
