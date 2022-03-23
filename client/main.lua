@@ -136,8 +136,11 @@ local function PoliceCall()
                     local vehicleColour1, vehicleColour2 = GetVehicleColours(vehicle)
                     data = {dispatchCode = 'autotheft', caller = 'en', coords = pos, netId = netId,
                 	info = ('[%s] %s%s'):format(modelPlate, doors, class)}
-                    TriggerServerEvent('wf-alerts:svNotify', data)
-                    TriggerServerEvent("setWantedLevel", 1)
+                    --TriggerServerEvent('wf-alerts:svNotify', data)
+
+                    local wanted = 1 local warrant = 1 local dispatch = 2
+                    TriggerEvent("qb-cnr:client:policeAlert", pos, "Vehicle Theft", wanted, dispatch, warrant)
+                    --TriggerServerEvent("setWantedLevel", 1)
                 else
                     local vehicle = QBCore.Functions.GetClosestVehicle()
                     local modelName = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
@@ -236,22 +239,46 @@ local function Hotwire()
             RequestAnimDict("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
         end
         TaskPlayAnim(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0, 8.0, 100000, 16, -1, false, false, false)
-        TriggerEvent("qb-carhack:starthack", function(result)
-            print("result: " .. tostring(result))
-                if result == 1 then 
-                    SetVehicleEngineOn(veh, true, false, true)
-                    TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(vehicle))
-                    QBCore.Functions.Notify("Hotwire succeeded!")
-                    lockpicked = false
-                else
-                    SetVehicleEngineOn(veh, false, false, true)
-                    QBCore.Functions.Notify("Hotwire failed!", "error")
-                end
-                StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
-              
-                IsHotwiring = false
-                SetVehicleAlarm(vehicle, false)
-        end)
+        --TriggerEvent("qb-carhack:starthack", function(result)
+        SetFollowVehicleCamViewMode(4)
+        local class = GetVehicleClass(vehicle)
+        print("class:"..class)
+        if class == 8 or class == 6 or class == 7 or class == 18 or class == 16 or class == 15 then 
+            TriggerEvent("qb-carhack:starthack", function(result)
+                print("result: " .. tostring(result))
+                    if result == 1 then 
+                        SetVehicleEngineOn(vehicle, true, false, true)
+                        TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(vehicle))
+                        QBCore.Functions.Notify("Hotwire succeeded!")
+                        lockpicked = false
+                    else
+                        SetVehicleEngineOn(vehicle, false, false, true)
+                        QBCore.Functions.Notify("Hotwire failed!", "error")
+                    end
+                    StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
+                    SetFollowVehicleCamViewMode(1)
+                    IsHotwiring = false
+                    SetVehicleAlarm(vehicle, false)
+            end)
+        else 
+
+            TriggerEvent('qb-hotwire:start', function(result)
+                print("result: " .. tostring(result))
+                    if result == 1 then 
+                        SetVehicleEngineOn(vehicle, true, false, true)
+                        TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(vehicle))
+                        QBCore.Functions.Notify("Hotwire succeeded!")
+                        lockpicked = false
+                    else
+                        SetVehicleEngineOn(vehicle, false, false, true)
+                        QBCore.Functions.Notify("Hotwire failed!", "error")
+                    end
+                    StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
+                    SetFollowVehicleCamViewMode(1)
+                    IsHotwiring = false
+                    SetVehicleAlarm(vehicle, false)
+            end)
+        end
       
 --[[         QBCore.Functions.Progressbar("hotwire_vehicle", "Engaging the ignition switch", hotwireTime, false, true, {
             disableMovement = true,
@@ -359,9 +386,9 @@ end
 
 -- Events
 
-RegisterNetEvent('lockpicks:UseLockpick', function(isAdvanced)
+--[[ RegisterNetEvent('lockpicks:UseLockpick', function(isAdvanced)
     LockpickDoor(isAdvanced)
-end)
+end) ]]
 
 RegisterNetEvent('vehiclekeys:client:SetOwner', function(plate)
     local VehPlate = plate
