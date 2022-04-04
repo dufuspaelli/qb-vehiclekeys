@@ -445,6 +445,8 @@ CreateThread(function()
                 local plate = QBCore.Functions.GetPlate(entering)
                 QBCore.Functions.TriggerCallback('vehiclekeys:server:CheckOwnership', function(result)
                     if not result then -- if not player owned
+                        HasVehicleKey = false
+                        SetVehicleDoorsLocked(entering, 7)
                         local driver = GetPedInVehicleSeat(entering, -1)
                         if driver ~= 0 and not IsPedAPlayer(driver) then
                             print(GetVehicleClass(entering))
@@ -486,6 +488,9 @@ CreateThread(function()
                                 end
                             end, plate)
                         end
+                    else 
+                        print("owns car")
+                        HasVehicleKey = true
                     end
                 end, plate)
             end
