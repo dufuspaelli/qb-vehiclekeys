@@ -328,11 +328,7 @@ local function RobVehicle(target)
             SetVehicleDoorsLocked(veh, 1)
             FreezeEntityPosition(target, false)
             Wait(1000)
-           
-          
-          
             TaskEveryoneLeaveVehicle(veh)
-
             Wait(500)
             ClearPedTasksImmediately(target)
             TaskReactAndFleePed(target, PlayerPedId())
@@ -340,7 +336,6 @@ local function RobVehicle(target)
             local plate = QBCore.Functions.GetPlate(GetVehiclePedIsIn(target, true))
             TriggerEvent('vehiclekeys:client:SetOwner', plate)
             QBCore.Functions.Notify('You Got The Keys!', 'success')
-            
             Wait(10000)
             IsRobbing = false
         else
