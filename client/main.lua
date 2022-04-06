@@ -325,6 +325,7 @@ local function RobVehicle(target)
     QBCore.Functions.Progressbar("rob_keys", "Attempting Robbery..", 2000, false, true, {}, {}, {}, {}, function()
         local chance = math.random()
         if chance <= Config.RobberyChance then
+            SetVehicleDoorsLocked(veh, 1)
             FreezeEntityPosition(target, false)
             Wait(1000)
            
@@ -339,6 +340,7 @@ local function RobVehicle(target)
             local plate = QBCore.Functions.GetPlate(GetVehiclePedIsIn(target, true))
             TriggerEvent('vehiclekeys:client:SetOwner', plate)
             QBCore.Functions.Notify('You Got The Keys!', 'success')
+            
             Wait(10000)
             IsRobbing = false
         else
