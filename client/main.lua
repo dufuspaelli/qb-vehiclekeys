@@ -447,10 +447,10 @@ CreateThread(function()
                         if driver ~= 0 and not IsPedAPlayer(driver) then
                             print(GetVehicleClass(entering))
                
-                            if Config.Rob then
+                            if Config.Rob and not exports["qb-cnr"]:isACop() then
                                 if IsEntityDead(driver) then
                                     TriggerEvent("vehiclekeys:client:SetOwner", plate)
-                                    SetVehicleDoorsLocked(entering, 1)
+                                    SetVehicleDoorsLocked(entering, 7)
                                     HasVehicleKey = true
                                 elseif GetVehicleClass(entering) == 8 and driver then 
                                     TriggerEvent("vehiclekeys:client:SetOwner", plate)
@@ -461,8 +461,8 @@ CreateThread(function()
                                 end
                             else
                                 TriggerEvent("vehiclekeys:client:SetOwner", plate)
-                                SetVehicleDoorsLocked(entering, 1)
-                                HasVehicleKey = true
+                                SetVehicleDoorsLocked(entering, 2)
+                                HasVehicleKey = false
                             end
                         else
                             QBCore.Functions.TriggerCallback('vehiclekeys:server:CheckHasKey', function(result)
@@ -496,10 +496,26 @@ CreateThread(function()
                 local veh = GetVehiclePedIsIn(ped)
                 local vehpos = GetOffsetFromEntityInWorldCoords(veh, 0.0, 2.0, 1.0)
                 SetVehicleEngineOn(veh, false, false, true)
-                if GetPedInVehicleSeat(veh, -1) == PlayerPedId() then
+                if GetPedInVehicleSeat(veh, -1) == PlayerPedId()  then
                     DrawText3D(vehpos.x, vehpos.y, vehpos.z, "~g~[H]~w~ - Hotwire")
-                    if IsControlJustPressed(0, 74) then
+                    local class = GetVehicleClass(veh)
+                    if IsControlJustPressed(0, 74) and not exports["qb-cnr"]:isACop() then
                         Hotwire()
+                    elseif IsControlJustPressed(0, 74) and exports["qb-cnr"]:isACop() and not (class == 8 or class == 6 or class == 7 or class == 16 or class == 15)  then 
+                        QBCore.Functions.Progressbar("hotwire", "Hotwiring..", 20000, false, true, {
+                                disableMovement = true, --
+                                disableCarMovement = true,
+                                disableMouse = false,
+                                disableCombat = true,
+                            }, {}, {}, {}, function() 
+                                SetVehicleEngineOn(veh, true, false, true)
+                                TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(veh))
+                                QBCore.Functions.Notify("Hotwire succeeded!")
+                                lockpicked = false
+                            end, function() -- Cancel
+                        end)
+                    elseif IsControlJustPressed(0, 74) and exports["qb-cnr"]:isACop() and (class == 8 or class == 6 or class == 7 or class == 16 or class == 15) then 
+                        QBCore.Functions.Notify("Can't hotwire this!","error")
                     end
                 end
             end
@@ -535,3 +551,4 @@ end)
 function isTargetACop(ped)
     if (GetEntityArchetypeName(ped) == 's_m_y_cop_01') then return true else return false end
 end
+
