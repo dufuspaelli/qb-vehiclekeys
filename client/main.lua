@@ -486,6 +486,7 @@ CreateThread(function()
                         end
                     else 
                         print("owns car")
+                        SetVehicleDoorsLocked(entering, 1)
                         HasVehicleKey = true
                     end
                 end, plate)
