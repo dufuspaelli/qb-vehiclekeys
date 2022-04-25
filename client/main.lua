@@ -503,7 +503,7 @@ CreateThread(function()
                     if IsControlJustPressed(0, 74) and not exports["qb-cnr"]:isACop() then
                         Hotwire()
                     elseif IsControlJustPressed(0, 74) and exports["qb-cnr"]:isACop() and not (class == 8 or class == 6 or class == 7 or class == 16 or class == 15)  then 
-                        QBCore.Functions.Progressbar("hotwire", "Hotwiring..", 20000, false, true, {
+--[[                         QBCore.Functions.Progressbar("hotwire", "Hotwiring..", 20000, false, true, {
                                 disableMovement = true, --
                                 disableCarMovement = true,
                                 disableMouse = false,
@@ -514,7 +514,8 @@ CreateThread(function()
                                 QBCore.Functions.Notify("Hotwire succeeded!")
                                 lockpicked = false
                             end, function() -- Cancel
-                        end)
+                        end) ]]
+                        Hotwire()
                     elseif IsControlJustPressed(0, 74) and exports["qb-cnr"]:isACop() and (class == 8 or class == 6 or class == 7 or class == 16 or class == 15) then 
                         QBCore.Functions.Notify("Can't hotwire this!","error")
                     end
